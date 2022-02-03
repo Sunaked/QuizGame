@@ -46,7 +46,12 @@ func main() {
 		*amountOfQuestions = len(problems) - 1
 	}
 	var correctAnswers int = 0
+	var amountOfAnswers int = 0
+	startGame()
 
+	timer := time.NewTimer(time.Second * time.Duration(*timeForQuestions))
+	ch1 := make(chan string)
+GameLoop:
 	for ind := 0; ind < *amountOfQuestions; ind++ {
 		rand.Seed(int64(time.Now().UnixNano()))
 		var problem problem
@@ -60,17 +65,36 @@ func main() {
 			problem = problems[0]
 		}
 		fmt.Printf("Question is: %s, your answer = ", problem.question)
+		amountOfAnswers++
 		var answer string
-		fmt.Scanf("%s\n", &answer)
-		if answer == problem.answer {
-			fmt.Print("Rigth answer! Good\n")
-			correctAnswers++
-		} else {
-			fmt.Printf("Wrong! Bad: Right answer is %s, whereas your answer is %s\n", problem.answer, answer)
+		go func() {
+			var tmp string
+			fmt.Scanf("%s\n", &tmp)
+			ch1 <- tmp
+		}()
+		select {
+		case <-timer.C:
+			break GameLoop
+		case answer = <-ch1:
+			if answer == problem.answer {
+				fmt.Print("Rigth answer! Good\n")
+				correctAnswers++
+			} else {
+				fmt.Printf("Wrong! Bad: Right answer is %s, whereas your answer is %s\n", problem.answer, answer)
+			}
 		}
 	}
-	fmt.Printf("\n=====================\n====Game is over====\n====Your score is %d==\n=====================\n", correctAnswers)
+	gameOver(correctAnswers, amountOfAnswers)
+}
 
+func startGame() {
+	fmt.Printf("\nPress any key to begin")
+	var tmp string
+	fmt.Scanf("%s\n", tmp)
+}
+
+func gameOver(correctAnswers int, totalAnswers int) {
+	fmt.Printf("\n\nGame is over, Your score is %d out of %d\n", correctAnswers, totalAnswers)
 }
 
 func getProblems(lines [][]string) ([]problem, error) {
