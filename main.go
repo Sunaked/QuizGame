@@ -7,13 +7,14 @@ import (
 	"math/rand"
 	"os"
 	"strings"
+	"time"
 )
 
 func main() {
 
 	csvFilename := flag.String("csv", "../input.csv", "a csv file in the format of 'question, answer")
 	amountOfQuestions := flag.Int("amountOfQuestions", 0, "number of questions to display")
-	needToShuffle := flag.Bool("needToShuffle", false, "needToShuffles the question order")
+	needToShuffle := flag.Bool("shuffle", false, "needToShuffles the question order")
 	timeForQuestions := flag.Int("time", 30, "time to answer questions, after exceeding time test will be over")
 
 	flag.Parse()
@@ -47,10 +48,10 @@ func main() {
 	var correctAnswers int = 0
 
 	for ind := 0; ind < *amountOfQuestions; ind++ {
-		rand.Seed(int64(*amountOfQuestions))
+		rand.Seed(int64(time.Now().UnixNano()))
 		var problem problem
 		if *needToShuffle {
-			problemID := rand.Intn(len(problems))
+			problemID := rand.Intn(len(problems) - 1)
 			problems = append(problems[:problemID], problems[problemID+1:]...)
 			problem = problems[problemID]
 		} else {
